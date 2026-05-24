@@ -1,0 +1,161 @@
+<!-- This tells the web browser that this is an HTML5 document -->
+<!DOCTYPE html>
+<!-- The main wrapper for the website. 'lang="en"' means it's in English. 'data-theme="dark"' sets the default visual theme to dark mode. -->
+<html lang="en" data-theme="dark">
+<head>
+    <!-- The <head> section contains invisible settings and information about the page. -->
+    
+    <!-- This ensures text characters (like emojis or special symbols) display correctly. -->
+    <meta charset="UTF-8">
+    
+    <!-- This controls how the website scales on different screens, ensuring it looks good on mobile phones and prevents accidental zooming. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- The title that appears on the browser tab. -->
+    <title>Zen Dino — Minimalist Runner</title>
+    
+    <!-- A short description of the website, often used by search engines like Google. -->
+    <meta name="description" content="A sleek, modern, and minimalist reimagining of the classic Chrome Dino runner.">
+    
+    <!-- === EXTERNAL RESOURCES: GOOGLE FONTS === -->
+    <!-- These lines connect to Google's servers to download custom text fonts (Space Grotesk and Outfit) so our text looks stylish instead of using default system fonts. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- === LOCAL RESOURCES: STYLESHEET === -->
+    <!-- This links to our own local "styles.css" file which contains all the visual design rules (colors, layout, spacing) that make the website look good. -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<!-- The <body> section contains everything that the user actually sees on the screen. -->
+<body>
+    <!-- A wrapper box that holds the entire game layout -->
+    <div class="game-container">
+        
+        <!-- Dashboard Header: The top bar of the game containing the title and settings buttons -->
+        <header class="game-header">
+            <!-- The brand area with our logo icon and game name -->
+            <div class="brand">
+                <span class="logo-icon">▲</span>
+                <h1>ZEN DINO</h1>
+            </div>
+            <div class="header-controls">
+                <button id="stats-toggle" class="icon-btn" aria-label="Toggle Statistics" title="Statistics">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                </button>
+                <button id="audio-toggle" class="icon-btn" aria-label="Toggle Sound" title="Sound Toggle">
+                    <!-- Audio Icon (On) -->
+                    <svg id="audio-on-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                    <!-- Audio Icon (Off) -->
+                    <svg id="audio-off-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather hidden"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                </button>
+                <button id="theme-toggle" class="icon-btn" aria-label="Toggle Dark/Light Mode" title="Theme Toggle">
+                    <!-- Sun Icon -->
+                    <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    <!-- Moon Icon -->
+                    <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather hidden"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Live Score HUD (Heads Up Display): This shows the current and highest score to the player while they play. -->
+        <div class="score-hud">
+            <div class="hud-item">
+                <span class="hud-label">SCORE</span>
+                <span id="current-score" class="hud-val">00000</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-label">BEST</span>
+                <span id="high-score" class="hud-val">00000</span>
+            </div>
+        </div>
+
+        <!-- The Main Game Area -->
+        <main class="canvas-wrapper">
+            <!-- The <canvas> tag is a special HTML element that acts like a blank drawing board. Our JavaScript code will use this to draw the dinosaur, obstacles, and animation frame-by-frame. -->
+            <canvas id="game-canvas" width="800" height="300"></canvas>
+
+            <!-- Start Screen Overlay -->
+            <div id="start-overlay" class="overlay active">
+                <div class="overlay-content">
+                    <span class="overlay-badge">ZEN DINO RUNNER</span>
+                    <h2 class="overlay-title">Ready to Focus?</h2>
+                    <p class="overlay-desc">Control a minimal geometric traveler navigating an endless abstract plain. Avoid obstacles to maintain momentum.</p>
+                    <div class="instructions">
+                        <div class="instruction-item">
+                            <span class="key">SPACE</span> / <span class="key">▲</span>
+                            <span class="action">Jump (Hold to jump higher)</span>
+                        </div>
+                        <div class="instruction-item">
+                            <span class="key">▼</span>
+                            <span class="action">Duck / Descend faster</span>
+                        </div>
+                    </div>
+                    <button id="start-btn" class="primary-btn">Start Session</button>
+                </div>
+            </div>
+
+            <!-- Game Over Overlay -->
+            <div id="game-over-overlay" class="overlay">
+                <div class="overlay-content">
+                    <span class="overlay-badge error">SESSION COMPLETED</span>
+                    <h2 class="overlay-title">Game Over</h2>
+                    <div class="score-summary">
+                        <div class="summary-card">
+                            <span class="summary-label">Final Distance</span>
+                            <span id="final-score" class="summary-value">00000</span>
+                        </div>
+                        <div class="summary-card" id="new-high-score-indicator">
+                            <span class="summary-label">Record Run</span>
+                            <span class="summary-value new-record">NEW BEST!</span>
+                        </div>
+                    </div>
+                    <button id="retry-btn" class="primary-btn">Run Again</button>
+                </div>
+            </div>
+
+            <!-- Statistics Modal Overlay -->
+            <div id="stats-overlay" class="overlay">
+                <div class="overlay-content">
+                    <span class="overlay-badge">PERSONAL PROGRESS</span>
+                    <h2 class="overlay-title">Lifetime Statistics</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-num" id="stat-total-runs">0</span>
+                            <span class="stat-label">Total Runs</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-num" id="stat-total-jumps">0</span>
+                            <span class="stat-label">Total Jumps</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-num" id="stat-max-score">0</span>
+                            <span class="stat-label">Best Distance</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-num" id="stat-total-distance">0</span>
+                            <span class="stat-label">Total Distance Run</span>
+                        </div>
+                    </div>
+
+                    <div class="overlay-actions">
+                        <button id="close-stats-btn" class="secondary-btn">Back to Game</button>
+                        <button id="reset-stats-btn" class="danger-btn">Reset All Stats</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Mobile Controls Panel: On-screen buttons that only show up on touch devices so users can jump and duck without a physical keyboard. -->
+        <footer class="mobile-controls">
+            <button id="jump-btn" class="control-btn" aria-label="Jump Button">Jump</button>
+            <button id="duck-btn" class="control-btn" aria-label="Duck Button">Duck</button>
+        </footer>
+    </div>
+
+    <!-- === LOCAL RESOURCES: JAVASCRIPT === -->
+    <!-- The <script> tag loads our "game.js" file. While HTML builds the structure and CSS styles it, JavaScript provides the logic (like moving the dinosaur, keeping score, and handling button clicks). We put it at the very end of the body so the visual website loads first before loading the code. -->
+    <script src="game.js"></script>
+</body>
+</html>
