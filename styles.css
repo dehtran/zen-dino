@@ -223,6 +223,7 @@ body::before {
     overflow: hidden;
     background: rgba(0, 0, 0, 0.05);
     aspect-ratio: 800 / 300;
+    min-height: 340px; /* Prevents the canvas from getting too short and clipping the menu on portrait screens */
 }
 
 #game-canvas {
