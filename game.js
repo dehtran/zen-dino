@@ -58,6 +58,10 @@ class ZenDinoGame {
         this.statMaxScore = document.getElementById('stat-max-score');
         this.statTotalDistance = document.getElementById('stat-total-distance');
 
+        // iOS Tooltip
+        this.iosInstallTooltip = document.getElementById('ios-install-tooltip');
+        this.closeIosTooltipBtn = document.getElementById('close-ios-tooltip');
+
         // Game Settings & State
         this.gameState = 'START'; // START, PLAYING, GAMEOVER
         this.score = 0;
@@ -121,6 +125,7 @@ class ZenDinoGame {
         this.initStats();
         this.resizeCanvas();
         this.initEventListeners();
+        this.checkIosInstallPrompt();
         
         // Draw initial static frame
         this.drawStaticFrame();
@@ -344,6 +349,14 @@ class ZenDinoGame {
         });
         this.resetStatsBtn.addEventListener('click', () => this.resetAllStats());
 
+        // iOS Tooltip close
+        if (this.closeIosTooltipBtn) {
+            this.closeIosTooltipBtn.addEventListener('click', () => {
+                this.iosInstallTooltip.classList.add('hidden');
+                localStorage.setItem('zd-ios-tooltip-dismissed', 'true');
+            });
+        }
+
         // Keyboard controls
         window.addEventListener('keydown', (e) => {
             if (e.repeat) return; // Prevent continuous fire keydown repeating
@@ -493,6 +506,7 @@ class ZenDinoGame {
     // Game State Controls
     startGame() {
         this.initAudioContext();
+        this.requestFullscreen();
         
         // Hide overlays
         this.startOverlay.classList.remove('active');
@@ -554,6 +568,40 @@ class ZenDinoGame {
         
         // Show overlay
         this.gameOverOverlay.classList.add('active');
+    }
+
+    // Fullscreen and Platform Handlers
+    requestFullscreen() {
+        const docEl = document.documentElement;
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            try {
+                if (docEl.requestFullscreen) {
+                    docEl.requestFullscreen();
+                } else if (docEl.webkitRequestFullscreen) { /* Safari */
+                    docEl.webkitRequestFullscreen();
+                }
+            } catch (err) {
+                console.log("Fullscreen request denied or not supported.", err);
+            }
+        }
+    }
+
+    checkIosInstallPrompt() {
+        const isIos = () => {
+            const userAgent = window.navigator.userAgent.toLowerCase();
+            return /iphone|ipad|ipod/.test(userAgent);
+        };
+        const isStandalone = () => {
+            return ('standalone' in window.navigator) && (window.navigator.standalone);
+        };
+
+        // If it's an iOS device, but not running in standalone PWA mode, and user hasn't dismissed it
+        if (isIos() && !isStandalone()) {
+            const dismissed = localStorage.getItem('zd-ios-tooltip-dismissed');
+            if (!dismissed && this.iosInstallTooltip) {
+                this.iosInstallTooltip.classList.remove('hidden');
+            }
+        }
     }
 
     // =========================================================================

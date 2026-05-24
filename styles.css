@@ -78,8 +78,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
     transition: background-color var(--transition-normal), color var(--transition-normal);
     position: relative;
     padding: 20px;
@@ -551,12 +550,24 @@ body::before {
 /* Media Queries for Responsiveness */
 @media (max-width: 640px) {
     body {
-        padding: 10px;
+        padding: 0; /* Remove padding to maximize space */
+        height: 100dvh; /* Fill exact screen height, accounting for Safari UI */
+        min-height: 100dvh;
+        overflow: hidden;
+        touch-action: none; /* Prevent iOS pull-to-refresh and rubber banding */
     }
     
     .game-container {
-        padding: 12px;
+        padding: 16px;
         gap: 12px;
+        height: 100%;
+        border-radius: 0; /* Remove rounded corners on full screen */
+        border: none;
+    }
+    
+    .canvas-wrapper {
+        flex-grow: 1; /* Allow canvas to stretch and fill all remaining vertical space */
+        min-height: 0; /* Overrides the previous 250px minimum to allow perfect flex math */
     }
     
     .brand h1 {
