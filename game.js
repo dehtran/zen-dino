@@ -406,6 +406,49 @@ class ZenDinoGame {
             this.dinoDuck(false);
         });
 
+        // Full Screen Canvas Touch/Click Controls
+        const handleCanvasTap = (yPos) => {
+            if (this.gameState === 'START' || this.gameState === 'GAMEOVER') {
+                this.startGame();
+            } else if (this.gameState === 'PLAYING') {
+                // If tapped upper half of the screen, jump. If lower half, duck.
+                if (yPos < window.innerHeight / 2) {
+                    this.dinoJump();
+                } else {
+                    this.dinoDuck(true);
+                }
+            }
+        };
+
+        const handleCanvasRelease = () => {
+            if (this.gameState === 'PLAYING') {
+                this.dinoDuck(false);
+            }
+        };
+
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) {
+                // Only prevent default if we're playing to avoid breaking scrolling elsewhere
+                if (this.gameState === 'PLAYING') e.preventDefault(); 
+                handleCanvasTap(e.touches[0].clientY);
+            }
+        });
+
+        this.canvas.addEventListener('touchend', (e) => {
+            if (this.gameState === 'PLAYING') e.preventDefault();
+            handleCanvasRelease();
+        });
+
+        this.canvas.addEventListener('mousedown', (e) => {
+            if (this.gameState === 'PLAYING') e.preventDefault();
+            handleCanvasTap(e.clientY);
+        });
+
+        this.canvas.addEventListener('mouseup', (e) => {
+            if (this.gameState === 'PLAYING') e.preventDefault();
+            handleCanvasRelease();
+        });
+
         // Window resize
         window.addEventListener('resize', () => {
             this.resizeCanvas();

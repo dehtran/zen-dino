@@ -577,3 +577,13 @@ body::before {
         display: flex;
     }
 }
+
+/* Touch devices (includes iPads, landscape phones) */
+@media (hover: none) and (pointer: coarse) {
+    .instructions {
+        display: none;
+    }
+    .mobile-controls {
+        display: flex;
+    }
+}
