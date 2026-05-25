@@ -97,8 +97,9 @@ class ZenDinoGame {
             isJumping: false,// True if the dino is currently in the air
             isDucking: false,// True if the player is holding the duck key
             jumpCount: 0,    // Tracks total jumps for stats
-            runTimer: 0,     // A timer used to toggle the leg animation back and forth
-            feetState: 0     // Tracks which leg is currently forward (0 or 1)
+            runTimer: 0,
+            feetState: 0,
+            history: [] // For speed trail ghost afterimages
         };
         // Set the starting Y position so the dino rests exactly on top of our invisible floor.
         this.dino.y = this.GROUND_Y - this.dino.height;
@@ -667,11 +668,24 @@ class ZenDinoGame {
                 this.dino.y = groundLimit;
                 this.dino.vy = 0;
                 this.dino.isJumping = false;
-                this.emitJumpParticles(); // Land particles
+                this.emitLandingSparks();
             }
         } else {
             // Legs running animation
-            this.dino.runTimer += dt * (this.speed / 10);
+            // Record history for speed trails
+        if (this.speed > this.START_SPEED + 150) {
+            this.dino.history.push({ x: this.dino.x, y: this.dino.y, isDucking: this.dino.isDucking });
+            if (this.dino.history.length > 5) this.dino.history.shift();
+        } else {
+            this.dino.history = [];
+        }
+
+        // Aerodynamic wind lines while ducking
+        if (this.dino.isDucking && Math.random() < 0.2) {
+            this.emitWindLines();
+        }
+
+        this.dino.runTimer += dt * (this.speed / 10);
             if (this.dino.runTimer > 1) {
                 this.dino.feetState = this.dino.feetState === 0 ? 1 : 0;
                 this.dino.runTimer = 0;
@@ -837,6 +851,66 @@ class ZenDinoGame {
         });
     }
 
+    
+    emitLandingSparks() {
+        for (let i = 0; i < 8; i++) {
+            this.particles.push({
+                x: this.dino.x + 16,
+                y: this.GROUND_Y,
+                vx: (Math.random() - 0.5) * 400,
+                vy: (Math.random() - 0.2) * 100, // Mostly horizontal
+                life: 1.0,
+                maxLife: 1.0 + Math.random() * 0.5,
+                color: document.documentElement.style.getPropertyValue('--accent-color').trim() || '#06b6d4',
+                size: 2 + Math.random() * 3,
+                type: 'spark'
+            });
+        }
+    }
+
+    emitWindLines() {
+        this.particles.push({
+            x: this.dino.x + 40 + Math.random() * 20,
+            y: this.dino.y - 5 - Math.random() * 15,
+            vx: -this.speed * 1.5,
+            vy: 0,
+            life: 1.0,
+            maxLife: 1.0,
+            color: document.documentElement.style.getPropertyValue('--accent-color').trim() || '#06b6d4',
+            size: 2,
+            width: 15 + Math.random() * 20,
+            type: 'wind'
+        });
+    }
+
+    drawPixelMap(ctx, map, scale, x, y, isDucking, feetState) {
+        ctx.save();
+        ctx.translate(x, y);
+        for (let r = 0; r < map.length; r++) {
+            for (let c = 0; c < map[r].length; c++) {
+                const p = map[r][c];
+                // Draw pixels
+                if (p === 'X' || p === 'E' || (p === 'L' && feetState === 0) || (p === 'R' && feetState === 1)) {
+                    if (p === 'E') {
+                        // Eye pulse logic
+                        const time = Date.now() / 200;
+                        ctx.globalAlpha = 0.5 + Math.sin(time) * 0.5;
+                        ctx.fillStyle = document.documentElement.style.getPropertyValue('--accent-color').trim() || '#06b6d4';
+                    } else {
+                        ctx.globalAlpha = 1.0;
+                    }
+                    ctx.fillRect(c * scale, r * scale, scale, scale);
+                    // Reset fillStyle to main color if it was the eye
+                    if (p === 'E') {
+                        ctx.globalAlpha = 1.0;
+                        ctx.fillStyle = ctx.strokeStyle; 
+                    }
+                }
+            }
+        }
+        ctx.restore();
+    }
+
     emitJumpParticles() {
         const textStyle = getComputedStyle(document.documentElement);
         const normalColor = textStyle.getPropertyValue('--border-color').trim();
@@ -947,119 +1021,55 @@ class ZenDinoGame {
         const accentColor = style.getPropertyValue('--accent-color').trim();
         
         this.ctx.fillStyle = dinoColor;
-        this.ctx.strokeStyle = dinoColor;
-        this.ctx.lineWidth = 2;
-        this.ctx.lineCap = 'round';
-        this.ctx.lineJoin = 'round';
+        this.ctx.strokeStyle = dinoColor; // using strokeStyle to store main color
         
-        this.ctx.save();
-        this.ctx.translate(this.dino.x, this.dino.y);
+        const scale = 4;
         
-        if (this.dino.isDucking) {
-            // Draw Ducking Dino
-            // Main sleek horizontal polygon body
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, 16);
-            this.ctx.lineTo(12, 6);
-            this.ctx.lineTo(44, 6);
-            this.ctx.lineTo(54, 12);
-            this.ctx.lineTo(60, 12); // head snout
-            this.ctx.lineTo(52, 22);
-            this.ctx.lineTo(24, 22);
-            this.ctx.lineTo(10, 24);
-            this.ctx.closePath();
-            this.ctx.fill();
-
-            // Accent geometric circle eye
-            this.ctx.fillStyle = accentColor;
-            this.ctx.beginPath();
-            this.ctx.arc(44, 11, 2, 0, Math.PI * 2);
-            this.ctx.fill();
-
-            // Tiny legs flipping underneath
-            this.ctx.strokeStyle = dinoColor;
-            this.ctx.lineWidth = 2;
-            this.ctx.beginPath();
-            if (this.dino.feetState === 0) {
-                this.ctx.moveTo(18, 22); this.ctx.lineTo(14, 24);
-                this.ctx.moveTo(34, 22); this.ctx.lineTo(34, 24);
-            } else {
-                this.ctx.moveTo(18, 22); this.ctx.lineTo(18, 24);
-                this.ctx.moveTo(34, 22); this.ctx.lineTo(38, 24);
+        // 8-bit T-Rex Maps (L=Left Leg, R=Right Leg, E=Eye)
+        const runMap = [
+            "         XXXXXX ",
+            "        XEXXXXX ",
+            "        XXXXXXX ",
+            "        XXXX    ",
+            " X      XXXXXX  ",
+            " XX    XXXXX    ",
+            " XXXXX XXXXX    ",
+            "  XXXXXXXXX     ",
+            "    XXXXXX      ",
+            "     X  X       ",
+            "     L  R       "
+        ];
+        
+        const duckMap = [
+            "                ",
+            "                ",
+            "                ",
+            "                ",
+            "             XXX",
+            " X          XEXX",
+            " XX        XXXXX",
+            " XXXXXXXXXXXXX  ",
+            "  XXXXXXXXXXX   ",
+            "     X  X       ",
+            "     L  R       "
+        ];
+        
+        // Draw Ghosts (Speed Trails)
+        if (this.dino.history && this.dino.history.length > 0) {
+            for (let i = 0; i < this.dino.history.length; i++) {
+                const ghost = this.dino.history[i];
+                this.ctx.globalAlpha = (i + 1) * 0.05; // Faint to solid
+                const mapToUse = ghost.isDucking ? duckMap : runMap;
+                this.drawPixelMap(this.ctx, mapToUse, scale, ghost.x, ghost.y, ghost.isDucking, this.dino.feetState);
             }
-            this.ctx.stroke();
-
-        } else {
-            // Draw Running / Jumping Dino
-            // Main beautiful minimalist vertical body
-            this.ctx.beginPath();
-            // Tail
-            this.ctx.moveTo(0, 22);
-            this.ctx.quadraticCurveTo(8, 24, 12, 14);
-            // Head/neck outline
-            this.ctx.lineTo(12, 4);
-            this.ctx.lineTo(30, 4);
-            this.ctx.lineTo(32, 14);
-            this.ctx.lineTo(24, 18);
-            // Back/body profile
-            this.ctx.lineTo(24, 38);
-            this.ctx.lineTo(10, 38);
-            this.ctx.closePath();
-            this.ctx.fill();
-
-            // Head extension snout
-            this.ctx.beginPath();
-            this.ctx.moveTo(22, 4);
-            this.ctx.lineTo(34, 4);
-            this.ctx.lineTo(34, 10);
-            this.ctx.lineTo(22, 10);
-            this.ctx.closePath();
-            this.ctx.fill();
-
-            // Geometric contrast eye (accent color)
-            this.ctx.fillStyle = accentColor;
-            this.ctx.beginPath();
-            this.ctx.arc(28, 7, 2, 0, Math.PI * 2);
-            this.ctx.fill();
-
-            // Dino legs
-            this.ctx.strokeStyle = dinoColor;
-            this.ctx.lineWidth = 2.5;
-            this.ctx.beginPath();
-            
-            if (this.dino.isJumping) {
-                // Suspended bent legs
-                this.ctx.moveTo(12, 38);
-                this.ctx.lineTo(8, 44);
-                this.ctx.lineTo(12, 45);
-                
-                this.ctx.moveTo(20, 38);
-                this.ctx.lineTo(18, 44);
-                this.ctx.lineTo(22, 45);
-            } else {
-                // Running alternating legs
-                if (this.dino.feetState === 0) {
-                    // Left leg forward
-                    this.ctx.moveTo(12, 38);
-                    this.ctx.lineTo(14, 48);
-                    // Right leg backward
-                    this.ctx.moveTo(20, 38);
-                    this.ctx.lineTo(16, 46);
-                    this.ctx.lineTo(12, 46);
-                } else {
-                    // Left leg backward
-                    this.ctx.moveTo(12, 38);
-                    this.ctx.lineTo(10, 46);
-                    this.ctx.lineTo(6, 46);
-                    // Right leg forward
-                    this.ctx.moveTo(20, 38);
-                    this.ctx.lineTo(18, 48);
-                }
-            }
-            this.ctx.stroke();
+            this.ctx.globalAlpha = 1.0;
         }
-        
-        this.ctx.restore();
+
+        // Draw Main Dino
+        const mapToUse = this.dino.isDucking ? duckMap : runMap;
+        // In jump, legs stay static (feetState=0)
+        const currentFeetState = this.dino.isJumping ? 0 : this.dino.feetState;
+        this.drawPixelMap(this.ctx, mapToUse, scale, this.dino.x, this.dino.y, this.dino.isDucking, currentFeetState);
     }
 
     drawObstacles() {

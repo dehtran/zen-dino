@@ -559,6 +559,10 @@ body::before {
     
     .game-container {
         padding: 16px;
+        padding-top: max(16px, env(safe-area-inset-top));
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
         gap: 12px;
         height: 100%;
         border-radius: 0; /* Remove rounded corners on full screen */
@@ -601,6 +605,7 @@ body::before {
     
     .mobile-controls {
         display: flex;
+        margin-bottom: 8vh; /* Elevate buttons halfway to the floor for thumbs */
     }
 }
 
@@ -611,5 +616,73 @@ body::before {
     }
     .mobile-controls {
         display: flex;
+    }
+}
+
+/* Landscape Immersive Mode */
+@media (orientation: landscape) and (max-height: 500px) {
+    body {
+        padding: 0;
+        height: 100dvh;
+        overflow: hidden;
+        touch-action: none;
+    }
+    .game-container {
+        padding: 0;
+        gap: 0;
+        height: 100%;
+        border-radius: 0;
+        border: none;
+        position: relative;
+    }
+    .game-header {
+        position: absolute;
+        top: max(16px, env(safe-area-inset-top));
+        left: max(16px, env(safe-area-inset-left));
+        z-index: 20;
+        border-bottom: none;
+        padding: 8px 16px;
+        background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .score-hud {
+        position: absolute;
+        top: max(16px, env(safe-area-inset-top));
+        right: max(16px, env(safe-area-inset-right));
+        z-index: 20;
+        padding: 8px 16px;
+        background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .canvas-wrapper {
+        flex-grow: 1;
+        height: 100%;
+        border-radius: 0;
+        border: none;
+    }
+    .mobile-controls {
+        position: absolute;
+        bottom: max(16px, env(safe-area-inset-bottom));
+        left: max(16px, env(safe-area-inset-left));
+        right: max(16px, env(safe-area-inset-right));
+        z-index: 20;
+        justify-content: space-between;
+        pointer-events: none; /* Let clicks pass through empty space */
+        width: calc(100% - max(32px, env(safe-area-inset-left) + env(safe-area-inset-right)));
+        margin: 0;
+    }
+    .control-btn {
+        pointer-events: auto; /* Re-enable clicks on the actual buttons */
+        min-width: 100px;
+        padding: 12px;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
     }
 }
