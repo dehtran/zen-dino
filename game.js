@@ -147,6 +147,16 @@ class ZenDinoGame {
         // Store logical dimensions
         this.logicalWidth = rect.width;
         this.logicalHeight = rect.height;
+        
+        // Dynamically calculate the floor so it's always comfortably above the bottom edge/thumbs
+        // Max 240 ensures it doesn't get too high on very tall portrait screens,
+        // but this.logicalHeight - 110 ensures it stays low on squished landscape screens.
+        this.GROUND_Y = Math.min(240, this.logicalHeight - 110);
+        
+        // Ensure dino rests on the newly calculated floor if not jumping
+        if (!this.dino.isJumping) {
+            this.dino.y = this.GROUND_Y - this.dino.height;
+        }
     }
 
     initTheme() {

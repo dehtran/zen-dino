@@ -679,6 +679,8 @@ body::before {
     }
     .control-btn {
         pointer-events: auto; /* Re-enable clicks on the actual buttons */
+        flex: none; /* Do not stretch in landscape */
+        width: 140px; /* Thumb-sized width */
         min-width: 100px;
         padding: 12px;
         background: rgba(15, 23, 42, 0.6);
